@@ -16,8 +16,13 @@ import javax.persistence.Entity;
 @Entity
 public class Category extends EntityBase implements Serializable {
 
+    public Category(Integer id) {
+        super(id);
+    }
+
     public Category() {
     }
+
     
     public Category(String name, String description) {
         this.name = name;
@@ -26,6 +31,8 @@ public class Category extends EntityBase implements Serializable {
     
     @Column
     private String name;
+
+    
 
     public String getName() {
         return name;
@@ -48,7 +55,7 @@ public class Category extends EntityBase implements Serializable {
 
     @Override
     public String toString() {
-        return "Category{" + "name=" + name + ", description=" + description + '}';
+        return this.name;
     }
 
 }

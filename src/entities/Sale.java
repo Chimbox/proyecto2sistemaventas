@@ -23,6 +23,20 @@ import javax.persistence.Transient;
 @Entity
 public class Sale extends EntityBase implements Serializable {
 
+    public Sale() {
+    }
+
+    public Sale(Integer id) {
+        super(id);
+    }
+
+    public Sale(Date date, float discount, float total, Customer customer) {
+        this.date = date;
+        this.discount = discount;
+        this.total = total;
+        this.customer = customer;
+    }
+    
     @Temporal(TemporalType.DATE)
     private Date date;
 

@@ -19,6 +19,10 @@ public class Customer extends EntityBase implements Serializable {
     public Customer() {
     }
 
+    public Customer(Integer id) {
+        super(id);
+    }
+
     public Customer(String rfc, String name, String address, String phone) {
         this.rfc = rfc;
         this.name = name;

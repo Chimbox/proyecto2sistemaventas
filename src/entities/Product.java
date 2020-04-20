@@ -18,6 +18,21 @@ import javax.persistence.ManyToOne;
 @Entity
 public class Product extends EntityBase implements Serializable {
 
+    public Product(String name, float price, int stock, Provider provider, Category category) {
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
+        this.provider = provider;
+        this.category = category;
+    }
+
+    public Product(Integer id) {
+        super(id);
+    }
+
+    public Product() {
+    }
+    
     @Column
     private String name;
 
@@ -77,6 +92,6 @@ public class Product extends EntityBase implements Serializable {
 
     @Override
     public String toString() {
-        return "entities.Product[ id=" + id + " ]";
+        return this.name+" - $"+this.price;
     }
 }

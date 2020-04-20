@@ -6,6 +6,7 @@
 package persistencia;
 
 import entities.EntityBase;
+import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 
@@ -23,6 +24,15 @@ public abstract class RepositoryBase<T extends EntityBase> implements Repository
     public T find(int id) {
         T entity = this.entityManager.find(cls, id);
         return entity;
+    }
+    
+    @Override
+    public List<T> findAll(){
+        List lst= this.entityManager.createQuery("SELECT p FROM "+cls.getName()+" p").getResultList();
+        
+        
+        System.out.println(lst.size());
+        return lst;
     }
 
     @Override

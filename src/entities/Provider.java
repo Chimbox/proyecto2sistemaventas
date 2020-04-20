@@ -16,6 +16,20 @@ import javax.persistence.Entity;
 @Entity
 public class Provider extends EntityBase implements Serializable {
 
+    public Provider(String name, String address, String phone, String website) {
+        this.name = name;
+        this.address = address;
+        this.phone = phone;
+        this.website = website;
+    }
+
+    public Provider() {
+    }
+
+    public Provider(Integer id) {
+        super(id);
+    }
+    
     @Column
     private String name;
 
@@ -62,7 +76,7 @@ public class Provider extends EntityBase implements Serializable {
 
     @Override
     public String toString() {
-        return "entities.Provider[ id=" + id + " ]";
+        return this.name;
     }
 
 }

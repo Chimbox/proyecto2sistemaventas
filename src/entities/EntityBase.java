@@ -16,6 +16,13 @@ import javax.persistence.MappedSuperclass;
  */
 @MappedSuperclass
 public abstract class EntityBase {
+
+    public EntityBase() {
+    }
+    
+    public EntityBase(Integer id) {
+        this.id = id;
+    }
     
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)

@@ -124,7 +124,7 @@ public class Models {
     
     public static DefaultTableModel saleItemTableModel(List<SaleItem> lstSaleItems) {
         Object tabla[][];
-        String[] nombresCols = {"ID", "Product", "Price", "Quantity", "Total"};
+        String[] nombresCols = {"Product", "Price", "Quantity", "Total"};
         if(lstSaleItems!=null){
             DefaultTableModel modelo = new DefaultTableModel(){
 			@Override
@@ -136,11 +136,10 @@ public class Models {
             
             for (int i = 0; i < lstSaleItems.size(); i++) {
                 SaleItem saleItem=lstSaleItems.get(i);
-                tabla[i][0]=saleItem.getId();
-                tabla[i][1]=saleItem.getProduct().getName();
-                tabla[i][2]=saleItem.getPrice();
-                tabla[i][3]=saleItem.getQuantity();
-                tabla[i][4]=saleItem.getTotal();
+                tabla[i][0]=saleItem.getProduct().getName();
+                tabla[i][1]=saleItem.getPrice();
+                tabla[i][2]=saleItem.getQuantity();
+                tabla[i][3]=saleItem.getTotal();
             }
             modelo.setDataVector(tabla, nombresCols);
             return modelo;

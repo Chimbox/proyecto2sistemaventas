@@ -6,6 +6,7 @@
 package entities;
 
 import java.io.Serializable;
+import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,6 +31,7 @@ public class SaleItem extends EntityBase implements Serializable {
 
     public void setProduct(Product product) {
         this.product = product;
+        this.price=product.getPrice();
     }
 
     @ManyToOne
@@ -64,15 +66,52 @@ public class SaleItem extends EntityBase implements Serializable {
         this.quantity = quantity;
     }
 
+    public boolean addOne() {
+        if (this.product.sell()) {
+            this.quantity++;
+          
+            this.total = this.quantity * this.price;
+            return true;
+        }
+        return false;
+
+    }
+
     private float total;
 
     public float getTotal() {
         return total;
     }
 
-   
     public void setTotal(float total) {
         this.total = total;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SaleItem other = (SaleItem) obj;
+        if (!Objects.equals(this.product, other.product)) {
+            return false;
+        }
+        if (!Objects.equals(this.sale, other.sale)) {
+            return false;
+        }
+        return true;
     }
 
     @Override

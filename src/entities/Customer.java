@@ -76,7 +76,7 @@ public class Customer extends EntityBase implements Serializable {
 
     @Override
     public String toString() {
-        return "entities.Customer[ id=" + id + " ]";
+        return this.name;
     }
 
 }

@@ -77,6 +77,14 @@ public class Product extends EntityBase implements Serializable {
     public void setProvider(Provider provider) {
         this.provider = provider;
     }
+    
+    public boolean sell(){
+        if(this.stock>0){
+            this.stock--;
+            return true;
+        }
+        return false;
+    }
 
     @ManyToOne
     @JoinColumn(name = "categoryId")

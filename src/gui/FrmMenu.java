@@ -11,12 +11,14 @@ import entities.Product;
 import entities.Sale;
 import entities.SaleItem;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import persistencia.CustomerRepositoryImpl;
 import persistencia.ProductRepositoryImpl;
 import persistencia.SaleItemRepositoryImpl;
@@ -34,55 +36,85 @@ public class FrmMenu extends javax.swing.JFrame {
     private CustomerRepositoryImpl customerRep;
     private ProductRepositoryImpl productRep;
     private SaleRepositoryImpl saleRep;
-    
+
     private List<SaleItem> lstSaleItems;
     private List<Product> lstProducts;
     private List<Customer> lstCustomers;
     
+    private float total;
+    private float totalDiscount;
+    private float discount;
+
     /**
      * Creates new form FrmMenu
      */
     public FrmMenu() {
         initComponents();
-        
-         EntityManagerFactory managerFactory
+
+        EntityManagerFactory managerFactory
                 = Persistence.createEntityManagerFactory("SistemaVentasPU");
-         em = 
-                managerFactory.createEntityManager();
+        em
+                = managerFactory.createEntityManager();
+
+        em.getTransaction().begin();
+
+        lstSaleItems = new ArrayList<>();
+
+        saleItemRep = new SaleItemRepositoryImpl(em, SaleItem.class);
+        customerRep = new CustomerRepositoryImpl(em, Customer.class);
+        productRep = new ProductRepositoryImpl(em, Product.class);
+        saleRep = new SaleRepositoryImpl(em, Sale.class);
+
+        currentSale = new Sale();
         
-         em.getTransaction().begin();
-         
-         lstSaleItems=new ArrayList<>();
-         
-         saleItemRep=new SaleItemRepositoryImpl(em, SaleItem.class);
-         customerRep=new CustomerRepositoryImpl(em, Customer.class);
-         productRep=new ProductRepositoryImpl(em, Product.class);
-         
-         currentSale=new Sale();
-         
-         updateProductList();
+        refreshCustomers();
+
+        updateProductList();
     }
 
-    private void updateMainTable(){
-        
+    private void updateMainTable() {
+
         updateProductList();
-        lstCustomers=customerRep.findAll();
         
-        this.cbxCustomers.setModel(Models.customersComboBoxModel(lstCustomers));
-        this.jtblSale.setModel(Models.productTableModel(lstProducts));
-    }
-    
-    private void updateProductList(){
-        lstProducts=productRep.findAll();
-        DefaultListModel mdl = new DefaultListModel();
         
-        for (int i = 0; i < lstProducts.size(); i++) {
-            mdl.add(i, lstProducts.get(i));
+        
+        
+        this.jtblSale.setModel(Models.saleItemTableModel(lstSaleItems));
+        
+        
+        this.total=0;
+        for (SaleItem lstSaleItem : lstSaleItems) {
+            this.total+=lstSaleItem.getTotal();
         }
         
+        if(txtDiscount.getText().length()>0){
+            this.totalDiscount=(this.total*Float.parseFloat(txtDiscount.getText()))/100;
+            this.discount=Float.parseFloat(txtDiscount.getText());
+            this.total-=this.totalDiscount;
+            this.lblTotalDiscount.setText("DISCOUNT: $"+String.valueOf(this.totalDiscount));
+            
+        }
+        this.lblTotal.setText("TOTAL: $"+String.valueOf(this.total));
+    }
+
+    private void updateProductList() {
+        lstProducts = productRep.findAll();
+        DefaultListModel mdl = new DefaultListModel();
+
+        for (int i = 0; i < lstProducts.size(); i++) {
+            if(lstProducts.get(i).getStock()>0)
+                mdl.add(i, lstProducts.get(i));
+        }
+
         lstAvailableProducts.setModel(mdl);
     }
     
+    private void refreshCustomers(){
+        lstCustomers = customerRep.findAll();
+
+        this.cbxCustomers.setModel(Models.customersComboBoxModel(lstCustomers));
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -96,17 +128,21 @@ public class FrmMenu extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         lblTotal = new javax.swing.JLabel();
-        btnCobrar = new javax.swing.JButton();
-        lblTotal2 = new javax.swing.JLabel();
-        lblTotal1 = new javax.swing.JLabel();
+        btnCharge = new javax.swing.JButton();
+        lblTotalDiscount = new javax.swing.JLabel();
+        lblProducts = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         lstAvailableProducts = new javax.swing.JList<>();
-        lblTotal3 = new javax.swing.JLabel();
+        lblThisSale = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jtblSale = new javax.swing.JTable();
         cbxCustomers = new javax.swing.JComboBox<>();
-        jLabel1 = new javax.swing.JLabel();
+        lblCustomer = new javax.swing.JLabel();
         btnRefresh = new javax.swing.JButton();
+        lblPercent = new javax.swing.JLabel();
+        txtDiscount = new javax.swing.JTextField();
+        lblDiscount = new javax.swing.JLabel();
+        btnRefreshCustomers = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         menuCustomers = new javax.swing.JMenu();
         menuProducts = new javax.swing.JMenu();
@@ -120,11 +156,16 @@ public class FrmMenu extends javax.swing.JFrame {
         lblTotal.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         lblTotal.setText("TOTAL: $0.00");
 
-        btnCobrar.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        btnCobrar.setText("Charge");
+        btnCharge.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        btnCharge.setText("Charge");
+        btnCharge.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnChargeActionPerformed(evt);
+            }
+        });
 
-        lblTotal2.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        lblTotal2.setText("DISCOUNT: $0.00");
+        lblTotalDiscount.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        lblTotalDiscount.setText("DISCOUNT: $0.00");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -132,9 +173,9 @@ public class FrmMenu extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addGap(67, 67, 67)
-                .addComponent(btnCobrar, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnCharge, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(lblTotal2, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(lblTotalDiscount, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
@@ -142,17 +183,22 @@ public class FrmMenu extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(lblTotal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnCobrar, javax.swing.GroupLayout.DEFAULT_SIZE, 55, Short.MAX_VALUE)
-                .addComponent(lblTotal2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(btnCharge, javax.swing.GroupLayout.DEFAULT_SIZE, 55, Short.MAX_VALUE)
+                .addComponent(lblTotalDiscount, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        lblTotal1.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        lblTotal1.setText("Available products:");
+        lblProducts.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        lblProducts.setText("Products list:");
 
+        lstAvailableProducts.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                lstAvailableProductsMouseClicked(evt);
+            }
+        });
         jScrollPane2.setViewportView(lstAvailableProducts);
 
-        lblTotal3.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
-        lblTotal3.setText("On this sale:");
+        lblThisSale.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        lblThisSale.setText("On this sale:");
 
         jtblSale.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -184,13 +230,26 @@ public class FrmMenu extends javax.swing.JFrame {
         });
         jScrollPane3.setViewportView(jtblSale);
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        jLabel1.setText("Customer");
+        lblCustomer.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        lblCustomer.setText("Customer");
 
         btnRefresh.setText("Refresh products");
         btnRefresh.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnRefreshActionPerformed(evt);
+            }
+        });
+
+        lblPercent.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        lblPercent.setText("%");
+
+        lblDiscount.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        lblDiscount.setText("Discount:");
+
+        btnRefreshCustomers.setText("Refresh customers");
+        btnRefreshCustomers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRefreshCustomersActionPerformed(evt);
             }
         });
 
@@ -205,31 +264,49 @@ public class FrmMenu extends javax.swing.JFrame {
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 709, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cbxCustomers, javax.swing.GroupLayout.PREFERRED_SIZE, 266, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(lblCustomer, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(lblDiscount, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txtDiscount, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lblPercent, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(126, 126, 126)))
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(cbxCustomers, 0, 266, Short.MAX_VALUE)
+                            .addComponent(btnRefreshCustomers, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(34, 34, 34)))
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(lblTotal1, javax.swing.GroupLayout.PREFERRED_SIZE, 282, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblProducts, javax.swing.GroupLayout.PREFERRED_SIZE, 282, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 334, Short.MAX_VALUE)
                     .addComponent(btnRefresh, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel1Layout.createSequentialGroup()
-                    .addComponent(lblTotal3, javax.swing.GroupLayout.PREFERRED_SIZE, 292, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblThisSale, javax.swing.GroupLayout.PREFERRED_SIZE, 292, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGap(0, 758, Short.MAX_VALUE)))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGap(63, 63, 63)
+                .addGap(36, 36, 36)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblPercent)
+                    .addComponent(txtDiscount, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblDiscount)
+                    .addComponent(btnRefreshCustomers))
+                .addGap(7, 7, 7)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(cbxCustomers)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(lblCustomer, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(1, 1, 1))
-                    .addComponent(lblTotal1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(lblProducts, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 412, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -242,7 +319,7 @@ public class FrmMenu extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel1Layout.createSequentialGroup()
                     .addGap(59, 59, 59)
-                    .addComponent(lblTotal3, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblThisSale, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addContainerGap(477, Short.MAX_VALUE)))
         );
 
@@ -295,17 +372,17 @@ public class FrmMenu extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void menuCustomersMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_menuCustomersMouseClicked
-        FrmCustomer frm=new FrmCustomer(em);
+        FrmCustomer frm = new FrmCustomer(em);
         frm.setVisible(true);
     }//GEN-LAST:event_menuCustomersMouseClicked
 
     private void menuProductsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_menuProductsMouseClicked
-        FrmProduct frm=new FrmProduct(em);
+        FrmProduct frm = new FrmProduct(em);
         frm.setVisible(true);
     }//GEN-LAST:event_menuProductsMouseClicked
 
     private void menuProvidersMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_menuProvidersMouseClicked
-        FrmProvider frm=new FrmProvider(em);
+        FrmProvider frm = new FrmProvider(em);
         frm.setVisible(true);
     }//GEN-LAST:event_menuProvidersMouseClicked
 
@@ -315,12 +392,79 @@ public class FrmMenu extends javax.swing.JFrame {
     }//GEN-LAST:event_menuCategoriesMouseClicked
 
     private void jtblSaleMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jtblSaleMouseClicked
-        
+
     }//GEN-LAST:event_jtblSaleMouseClicked
 
     private void btnRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshActionPerformed
-        
+        updateProductList();
     }//GEN-LAST:event_btnRefreshActionPerformed
+
+    private void lstAvailableProductsMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_lstAvailableProductsMouseClicked
+        if (evt.getClickCount() == 2) {
+            int index = lstAvailableProducts.locationToIndex(evt.getPoint());
+            if (index >= 0) {
+                
+                Object o = lstAvailableProducts.getModel().getElementAt(index);
+                index=-1;
+                for (SaleItem lstSaleItem : lstSaleItems) {
+                    if (lstSaleItem.getProduct() == o) {
+                        index = lstSaleItems.indexOf(lstSaleItem);
+                        System.out.println(lstSaleItem.getProduct());
+                        break;
+                    }
+                }
+                if (index>=0) {
+
+                    if (lstSaleItems.get(index).addOne()) {
+                        updateMainTable();
+                    } else {
+                        updateProductList();
+                        
+                    }
+                } else {
+                    SaleItem saleItem = new SaleItem();
+                    saleItem.setSale(currentSale);
+                    saleItem.setProduct((Product)o);
+                    lstSaleItems.add(saleItem);
+                    updateMainTable();
+                }
+            }
+        }
+    }//GEN-LAST:event_lstAvailableProductsMouseClicked
+
+    private void btnChargeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChargeActionPerformed
+        if(lstSaleItems.size()>0&&this.total>0){
+            
+            currentSale.setCustomer((Customer)cbxCustomers.getSelectedItem());
+            currentSale.setDate(new Date());
+            currentSale.setDiscount(this.totalDiscount);
+            currentSale.setTotal(this.total);
+            
+            saleRep.save(currentSale);
+            saleRep.commit();
+            
+            for (SaleItem lstSaleItem : lstSaleItems) {
+                productRep.save(lstSaleItem.getProduct());
+                productRep.commit();
+                saleItemRep.save(lstSaleItem);
+                saleItemRep.commit();
+            }
+           
+            JOptionPane.showMessageDialog(this, "A new sale has been saved");
+            
+            this.lstSaleItems.clear();
+            updateMainTable();
+            this.total=0;
+            currentSale=new Sale();
+            this.txtDiscount.setText("");
+            this.lblTotal.setText("TOTAL: $0.0");
+            this.lblTotalDiscount.setText("DISCOUNT: $0.0");
+        }
+    }//GEN-LAST:event_btnChargeActionPerformed
+
+    private void btnRefreshCustomersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshCustomersActionPerformed
+        refreshCustomers();
+    }//GEN-LAST:event_btnRefreshCustomersActionPerformed
 
     /**
      * @param args the command line arguments
@@ -358,10 +502,10 @@ public class FrmMenu extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnCobrar;
+    private javax.swing.JButton btnCharge;
     private javax.swing.JButton btnRefresh;
+    private javax.swing.JButton btnRefreshCustomers;
     private javax.swing.JComboBox<String> cbxCustomers;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
@@ -369,14 +513,18 @@ public class FrmMenu extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTable jtblSale;
+    private javax.swing.JLabel lblCustomer;
+    private javax.swing.JLabel lblDiscount;
+    private javax.swing.JLabel lblPercent;
+    private javax.swing.JLabel lblProducts;
+    private javax.swing.JLabel lblThisSale;
     private javax.swing.JLabel lblTotal;
-    private javax.swing.JLabel lblTotal1;
-    private javax.swing.JLabel lblTotal2;
-    private javax.swing.JLabel lblTotal3;
+    private javax.swing.JLabel lblTotalDiscount;
     private javax.swing.JList<String> lstAvailableProducts;
     private javax.swing.JMenu menuCategories;
     private javax.swing.JMenu menuCustomers;
     private javax.swing.JMenu menuProducts;
     private javax.swing.JMenu menuProviders;
+    private javax.swing.JTextField txtDiscount;
     // End of variables declaration//GEN-END:variables
 }

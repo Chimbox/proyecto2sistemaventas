@@ -22,23 +22,22 @@ public class FrmProvider extends javax.swing.JFrame {
     private Provider providerEdit;
     private List<Provider> lstProviders;
     private ProviderRepositoryImpl providerRep;
-    
-    /**
-     * Creates new form frmProvider
-     */
-    public FrmProvider() {
-        initComponents();
-    }
+    private EntityManager em;
 
     public FrmProvider(EntityManager em) {
         initComponents();
+        this.em=em;
         isNewProvider=true;
-        providerRep=new ProviderRepositoryImpl(em, Provider.class);
         btnRemove.setVisible(false);
         updateMainTable();
     }
     
+    private void getRepProviders(){
+        providerRep=new ProviderRepositoryImpl(em, Provider.class);
+    }
+    
     private void updateMainTable(){
+        getRepProviders();
         lstProviders=providerRep.findAll();
         this.jtblProviders.setModel(Models.providerTableModel(lstProviders));
     }
@@ -352,7 +351,7 @@ public class FrmProvider extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new FrmProvider().setVisible(true);
+                new FrmProvider(null).setVisible(true);
             }
         });
     }

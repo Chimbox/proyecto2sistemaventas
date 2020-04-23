@@ -30,25 +30,24 @@ public class FrmProduct extends javax.swing.JFrame {
     private ProductRepositoryImpl productRep;
     private CategoryRepositoryImpl categoryRep;
     private ProviderRepositoryImpl providerRep;
-    
-    /**
-     * Creates new form FrmSale
-     */
-    public FrmProduct() {
-        initComponents();
-    }
+    private EntityManager em;
     
     public FrmProduct(EntityManager em) {
         initComponents();
+        this.em=em;
         isNewProduct=true;
-        productRep=new ProductRepositoryImpl(em, Product.class);
-        categoryRep=new CategoryRepositoryImpl(em, Category.class);
-        providerRep=new ProviderRepositoryImpl(em, Provider.class);
         btnRemove.setVisible(false);
         updateMainTable();
     }
+    
+    private void getRepositories(){
+        productRep=new ProductRepositoryImpl(em, Product.class);
+        categoryRep=new CategoryRepositoryImpl(em, Category.class);
+        providerRep=new ProviderRepositoryImpl(em, Provider.class);
+    }
 
     private void updateMainTable(){
+        getRepositories();
         lstProducts=productRep.findAll();
         lstProviders=providerRep.findAll();
         lstCategories=categoryRep.findAll();
@@ -404,7 +403,7 @@ public class FrmProduct extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new FrmProduct().setVisible(true);
+                new FrmProduct(null).setVisible(true);
             }
         });
     }

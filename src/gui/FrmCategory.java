@@ -23,21 +23,22 @@ public class FrmCategory extends javax.swing.JFrame {
     private CategoryRepositoryImpl categoryRep;
     private List<Category> lstCategories;
     private Category categoryEdit;
-    
-    public FrmCategory() {
-        initComponents();
-    }
+    private EntityManager em;
     
     public FrmCategory(EntityManager em) {
         initComponents();
+        this.em=em;
         isNewCategory=true;
-        categoryRep=new CategoryRepositoryImpl(em, Category.class);
         btnRemove.setVisible(false);
         updateMainTable();
     }
 
-
+    private void getRepCategories(){
+        categoryRep=new CategoryRepositoryImpl(em, Category.class);
+    }
+    
     private void updateMainTable(){
+        getRepCategories();
         lstCategories=categoryRep.findAll();
         this.jtblCategories.setModel(Models.categoryTableModel(lstCategories));
     }
@@ -332,7 +333,7 @@ public class FrmCategory extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new FrmCategory().setVisible(true);
+                new FrmCategory(null).setVisible(true);
             }
         });
     }

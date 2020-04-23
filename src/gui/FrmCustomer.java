@@ -22,23 +22,22 @@ public class FrmCustomer extends javax.swing.JFrame {
     private Customer customerEdit;
     private List<Customer> lstCustomers;
     private CustomerRepositoryImpl customerRep;
-    
-    /**
-     * Creates new form FrmCustomer
-     */
-    public FrmCustomer() {
-        initComponents();
-    }
+    private EntityManager em;
     
     public FrmCustomer(EntityManager em) {
         initComponents();
+        this.em=em;
         isNewCustomer=true;
-        customerRep=new CustomerRepositoryImpl(em, Customer.class);
         btnRemove.setVisible(false);
         updateMainTable();
     }
     
+    private void getRepCustomers(){
+        customerRep=new CustomerRepositoryImpl(em, Customer.class);
+    }
+    
     private void updateMainTable(){
+        getRepCustomers();
         lstCustomers=customerRep.findAll();
         this.jtblCustomers.setModel(Models.customerTableModel(lstCustomers));
     }
@@ -358,7 +357,7 @@ public class FrmCustomer extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new FrmCustomer().setVisible(true);
+                new FrmCustomer(null).setVisible(true);
             }
         });
     }
